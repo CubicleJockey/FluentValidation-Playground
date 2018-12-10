@@ -1,4 +1,6 @@
 ﻿using FluentAssertions;
+using FluentValidation;
+using FluentValidation.Results;
 using FluentValidationPlayground.Source.Entities;
 using FluentValidationPlayground.Source.Validators;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -19,14 +21,10 @@ namespace FluentValidationPlayground
 
             result.Should().NotBeNull();
 
-            if (!result.IsValid)
-            {
-                foreach (var failure in result.Errors)
-                {
-                    Console.WriteLine($"Property [{failure.PropertyName}] failed validation. Error was: {failure.ErrorMessage}");
-                }
-            }
+            DisplayErrors(result);
         }
+
+
 
         [TestMethod]
         public void GetAllErrorMessages()
@@ -57,5 +55,50 @@ namespace FluentValidationPlayground
 
             Console.WriteLine(allMessages);
         }
+
+        [TestMethod]
+        public void ValidateAndThrow()
+        {
+            var customer = new Customer();
+            var validator = new CustomerValidator();
+
+            try
+            {
+                validator.ValidateAndThrow(customer);
+            }
+            catch (ValidationException vx)
+            {
+                Console.WriteLine(vx.Message);
+            }
+        }
+
+        [TestMethod]
+        public void RuleForEach()
+        {
+            var person = new Person();
+            var validator = new PersonValidator();
+
+            var result = validator.Validate(person);
+
+            result.Should().NotBeNull();
+
+            DisplayErrors(result);
+        }
+
+
+        #region Helper Methods
+
+        private static void DisplayErrors(ValidationResult validationResult)
+        {
+            if (!validationResult.IsValid)
+            {
+                foreach (var error in validationResult.Errors)
+                {
+                    Console.WriteLine($"Property [{error.PropertyName}] failed validation. Error was: {error.ErrorMessage}");
+                }
+            }
+        }
+
+        #endregion Helper Methods
     }
 }
